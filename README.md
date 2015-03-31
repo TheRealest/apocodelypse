@@ -1,57 +1,11 @@
-# real-simple-webapp
+# apo*code*lypse
 
-A really simple webapp template for getting projects started without dealing with configuration or setup. See the example files in the `js/` and `scss/` folders to take advantage of the build system.
+A post-apocolyptic resource management game played through a terminal by writing snippets of code.
 
-### Project tools:
-
-* Angular
-* Ionic
-* Sass
-* Express
-
-### Development tools:
-
-* Browserify
-* Nodemon
-* Napa
-
-## `npm` scripts
-
-This app template includes several npm scripts to make development easier. Use: 
-
-```
-npm run build:js
-npm run build:sass
-```
-
-...to build javascript or sass files, respectively, or to do both at the same time use:
-
-```
-npm run build
-```
-
-To watch files for changes and automatically build when necessary, use any of:
-
-```
-npm run watch:js
-npm run watch:sass
-npm run watch
-```
-
-To start the webserver, which automatically restarts on either javascript or sass build, use:
+To start the app use:
 
 ```
 npm run serve
 ```
 
-Or both watch files to build and run the webserver at the same time for development with:
-
-```
-npm run dev
-```
-
-Finally, if you need to delete the build files for some reason, you can use:
-
-```
-npm run clean
-```
+The console has a small text box at the bottom for command entry. Just type your command in the form `<command> <flags> <args>` and hit enter to submit. Flags can be either short (a single letter preceded by a dash, like `-a` or `-s`) or long (a word preceded by a double dash, like `--fast`). Short flags can be combined in the form `-as`. Arguments are separated by a space. Use the `help` command to get started.
