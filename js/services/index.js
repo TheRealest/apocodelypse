@@ -1,3 +1,4 @@
 angular
   .module('app')
-  .service('example', require('./exampleService'));
+  .service('commandRunner', require('./commandRunnerService'))
+  .service('helpCommand', require('./helpCommandService'));

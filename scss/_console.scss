@@ -1,0 +1,49 @@
+$console-bg-color: #333;
+$console-text-color: #FF3D7F;
+
+%code {
+  margin: 20px;
+  padding: 5px;
+  width: 40%;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 0.8em;
+  color: $console-text-color;
+  background: $console-bg-color;
+}
+
+#console {
+  @extend %code;
+  height: 400px;
+  margin-bottom: 8px;
+
+  .command {
+
+  }
+
+  .result {
+
+  }
+}
+
+.command-line {
+  @extend %code;
+  margin-top: 0;
+  height: 2em;
+  position: relative;
+
+  label {
+    position: absolute;
+    font-size: 1.1em;
+    top: 0.1em;
+    left: 0.5em;
+  }
+
+  input[type=text].command-line {
+    @extend %code;
+    position: absolute;
+    height: 2em;
+    width: 95%;
+    top: -2em;
+    left: -0.5em;
+  }
+}

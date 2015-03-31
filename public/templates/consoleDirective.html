@@ -1,0 +1,11 @@
+<div id="console"></div>
+<form class="command-line">
+  <label>> </label>
+  <input
+    type="text"
+    name="commandLine"
+    class="command-line"
+    ng-model="commandLine"
+    ng-keydown="processKey($event)"
+    auto-focus>
+</form>

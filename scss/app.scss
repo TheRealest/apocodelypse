@@ -1,3 +1,12 @@
-#hello-world {
-  margin: 25px;
+$blueprint-color: #BFCCF5;
+$redscript-color: #F7CCBE;
+
+@import "console";
+
+html {
+  font-size: 62.5%;  // sets 1em = 10px
+}
+body {
+  font-size: 1.6rem; // sets global font size to 16px
+  background: #555;
 }

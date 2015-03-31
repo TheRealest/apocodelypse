@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="app">
   <head>
-    <title>real-simple-webapp</title>
+    <title>apocodelypse</title>
+
+    <!-- app stylesheets -->
+    <link rel="stylesheet" type="text/css" href="css/app.css">
 
     <!-- lib stylesheets -->
     <link rel="stylesheet" type="text/css" href="css/ionic.min.css">
 
-    <!-- app stylesheets -->
 
 
     <!-- lib scripts -->
@@ -17,6 +19,8 @@
 
   </head>
   <body>
-    <div id="hello-world">Hello World!</div>
+    <ion-nav-view animation="slide-left-right">
+      <i class='ion-icon ion-loading-a big-loading-icon'></i>
+    </ion-nav-view>
   </body>
 </html>

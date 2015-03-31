@@ -1,3 +1,5 @@
 angular
   .module('app')
-  .directive('example', require('./exampleDirective'));
+  .directive('autoFocus', require('./autoFocusDirective'))
+  .directive('codeWindow', require('./codeWindowDirective'))
+  .directive('console', require('./consoleDirective'));

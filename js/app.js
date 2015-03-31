@@ -1,18 +1,19 @@
-require('angular');
+require('ionic-angular');
 
 var app = angular.module('app', [
-  'ionic'
+  'ionic',
+  'ui.router'
   ])
   .config(function($stateProvider) {
-    // $stateProvider
-    //   .state('STATENAME' {
-    //     url: '/state_name',
-    //     templateUrl: 'views/state_name.html'
-    //   });
+    $stateProvider
+      .state('code', {
+        url: '/code',
+        templateUrl: 'views/code.html'
+      });
   })
   .config(function($urlRouterProvider) {
-    // $urlRouterProvider.otherwise('/');
-  })
+    $urlRouterProvider.otherwise('/code');
+  });
 
 require('./controllers');
 require('./directives');

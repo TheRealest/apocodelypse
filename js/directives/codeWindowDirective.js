@@ -1,9 +1,9 @@
-module.exports = function($timeout) {
+module.exports = function() {
   return {
     scope: {
-      setting: '='
+        lang: '='
     },
-    templateUrl: '../partials/exampleDirective.html',
+    templateUrl: '../templates/codeWindowDirective.html',
     restrict: 'E',
     link: function(scope) {
       scope.method = function() {

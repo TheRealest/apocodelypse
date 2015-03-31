@@ -1,0 +1,37 @@
+#console, .command-line, .command-line input[type=text].command-line {
+  margin: 20px;
+  padding: 5px;
+  width: 40%;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 0.8em;
+  color: #FF3D7F;
+  background: #333; }
+
+#console {
+  height: 400px;
+  margin-bottom: 8px; }
+
+.command-line {
+  margin-top: 0;
+  height: 2em;
+  position: relative; }
+  .command-line label {
+    position: absolute;
+    font-size: 1.1em;
+    top: 0.1em;
+    left: 0.5em; }
+  .command-line input[type=text].command-line {
+    position: absolute;
+    height: 2em;
+    width: 95%;
+    top: -2em;
+    left: -0.5em; }
+
+html {
+  font-size: 62.5%; }
+
+body {
+  font-size: 1.6rem;
+  background: #555; }
+
+/*# sourceMappingURL=app.css.map */

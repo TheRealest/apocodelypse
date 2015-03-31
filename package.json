@@ -1,9 +1,10 @@
 {
-  "name": "real-simple-webapp",
-  "version": "0.0.0",
+  "name": "apocodelypse",
+  "version": "0.0.1",
   "author": "Réal R. Provencher",
-  "description": "A really simple webapp template",
+  "description": "An incremental game played with code",
   "dependencies": {
+    "coffeeify": "^1.0.0",
     "express": "^4.12.0",
     "nodemon": "^1.3.7"
   },
@@ -19,10 +20,10 @@
   "scripts": {
     "postinstall": "./node_modules/.bin/napa",
     "clean": "rm public/js/* && rm public/css/*",
-    "build:js": "browserify -e ./js/app.js -o ./public/js/bundle.js",
-    "watch:js": "watchify -e ./js/app.js -o ./public/js/bundle.js",
-    "build:sass": "sass scss/app.scss public/css/app.css",
-    "watch:sass": "sass --watch scss/app.scss:public/css/app.css",
+    "build:js": "browserify -t coffeeify --extension='.coffee' -e ./js/app.js -o ./public/js/bundle.js",
+    "watch:js": "watchify -t coffeeify --extension='.coffee' -e ./js/app.js -o ./public/js/bundle.js",
+    "build:sass": "sass --update scss:public/css",
+    "watch:sass": "sass --watch scss/:public/css/",
     "build": "npm run build:js && npm run build:sass",
     "watch": "npm run watch:js & npm run watch:sass",
     "serve": "./node_modules/.bin/nodemon --watch public -e js,css server.js",
@@ -35,11 +36,12 @@
     "angular-resource": "./node_modules/ionic/release/js/angular/angular-resource.min.js",
     "angular-sanitize": "./node_modules/ionic/release/js/angular/angular-sanitize.min.js",
     "angular-ui-router": "./node_modules/ionic/release/js/angular-ui/angular-ui-router.min.js",
-    "ionic-angular": "./node_modules/ionic/release/js/angular.min.js"
+    "ionic-angular": "./node_modules/ionic/release/js/ionic.bundle.min.js"
   },
   "browerify": {
     "transform": [
-      "browserify-shim"
+      "browserify-shim",
+      "coffeeify"
     ]
   },
   "browserify-shim": {
