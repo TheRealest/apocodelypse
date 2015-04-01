@@ -16,11 +16,13 @@ var app = angular.module('app', [
     $urlRouterProvider.otherwise('/code');
   });
 
+require('./utils');
+
 require('./controllers');
 require('./directives');
 require('./services');
 
-},{"./controllers":3,"./directives":7,"./services":11,"ionic-angular":12}],2:[function(require,module,exports){
+},{"./controllers":3,"./directives":7,"./services":15,"./utils":16,"ionic-angular":17}],2:[function(require,module,exports){
 module.exports = function($scope) {
   $scope.method = function() {
     // do stuff
@@ -167,94 +169,12 @@ angular
   .directive('console', require('./consoleDirective'));
 
 },{"./autoFocusDirective":4,"./codeWindowDirective":5,"./consoleDirective":6}],8:[function(require,module,exports){
-module.exports = function() {
-  // init :: commandRunnerService -> commandService
-  // called by the commandRunnerService to add a
-  // reference to itself to this command
-  this.init = function(runner) {
-    this.runner = runner;
-    return this;
-  };
-
-  // listCommands :: () -> [String]
-  // returns list of recognized commands
-  this.listCommands = function() {
-    return Object.keys(this.commands);
-  };
-
-  // run :: String -> [String] -> [String] -> String
-  // accepts all command params and returns output
-  // to post to the console
-  this.run = function(command, flags, args) {
-    if (!(command in this.commands)) {
-      var error = '';
-      error += 'Command (';
-      error += command;
-      error += ') sent to wrong delegate (';
-      error += this;
-      error += ')';
-      return error;
-    }
-
-    return this.commands[command](flags,args);
-  };
-
-  // commands :: {String : Function}
-  // holds command functions which are called
-  // when the command corresponding to their key
-  // is called
-  this.commands = {
-    // command :: [String] -> [String] -> String
-    // takes flags/args, performs command, and 
-    // returns output string for console
-  };
-};
-
-},{}],9:[function(require,module,exports){
-module.exports = ['helpCommand', function(helpCommand) {
-  var commandDelegates = [
-    helpCommand.init(this)
-  ];
-
-  this.commands = {};
-  commandDelegates.forEach(function(delegate) {
-    delegate.listCommands().forEach(function(command) {
-      if (command in this.commands) {
-        var error = '';
-        error += 'Command name conflict: ';
-        error += command;
-        error += ' defined in ';
-        error += this.commands[command];
-        error += ' / ';
-        error += delegate;
-        console.log(error);
-      } else {
-        this.commands[command] = delegate;
-      }
-    }.bind(this));
-  }.bind(this));
-
-  this.hasCommand = function(keyword) {
-    return keyword in this.commands;
-  };
-
-  this.aliases = {
-    h: 'help'
-  };
-
-  this.hasAlias = function(keyword) {
-    return keyword in this.aliases && this.aliases[keyword] in this.commands;
-  };
+module.exports = ['commandLibrary', function(commandLibrary) {
+  commandLibrary.init(this);
 
   this.runCommand = function(command) {
     var parsed = this.parseCommand(command);
-    if (this.hasCommand(parsed.command)) {
-      return this.commands[parsed.command].run(parsed.command, parsed.flags, parsed.args);
-    } else if (this.hasAlias(parsed.command)) {
-      return this.commands[this.aliases[parsed.command]].run(this.aliases[parsed.command], parsed.flags, parsed.args);
-    } else {
-      return 'Command not recognized: ' + parsed.command;
-    }
+    return commandLibrary.run(parsed.command, parsed.flags, parsed.args);
   };
 
   this.parseCommand = function(command) {
@@ -288,26 +208,213 @@ module.exports = ['helpCommand', function(helpCommand) {
   };
 }];
 
-},{}],10:[function(require,module,exports){
-module.exports = function() {
-  require('./commandPrototype').call(this);
+},{}],9:[function(require,module,exports){
+module.exports = {
+  createCommand: function(name) {
+    this.command = function() {};
+    this.command.prototype = this.getCommandPrototype();
+    this.command.prototype.name = name;
+    return this;
+  },
 
-  this.commands.help = function(flags, args) {
+  add: function(cmd, aliases, processor) {
+    if (arguments.length === 2) {
+      processor = aliases;
+      aliases = [];
+    }
+    if (!Array.isArray(aliases)) aliases = [aliases];
+
+    this.command.prototype.commands[cmd] = processor;
+    aliases.forEach(function(a) {
+      this.command.prototype.aliases[a] = cmd;
+    }.bind(this));
+
+    return this;
+  },
+
+  getCommandPrototype: function() {
+    return {
+      init: function(runner) {
+        this.runner = runner;
+        return this;
+      },
+
+      listCommands: function() {
+        return Object.keys(this.commands);
+      },
+
+      listAliases: function() {
+        return Object.keys(this.aliases);
+      },
+
+      run: function(command, flags, args) {
+        if (!(command in this.commands)) {
+          var error = '';
+          error += 'Command [';
+          error += command;
+          error += '] sent to wrong delegate ';
+          error += this;
+          return error;
+        }
+        return this.commands[command].call(this,flags,args);
+      },
+
+      commands: {},
+      aliases: {}
+    };
+  }
+};
+
+},{}],10:[function(require,module,exports){
+module.exports = [
+  'echoCommand',
+  'helpCommand',
+  'resourceCommand',
+  function(helpCommand, echoCommand, resourceCommand) {
+    var commandDelegates = [
+      helpCommand,
+      echoCommand,
+      resourceCommand
+    ];
+
+    var commands = {},
+        aliases = {};
+    commandDelegates.forEach(function(delegate) {
+      delegate.listCommands().forEach(function(command) {
+        if (command in commands) {
+          var error = '';
+          error += 'Command name conflict: [';
+          error += command;
+          error += '] defined in ';
+          error += commands[command].name;
+          error += ' / ';
+          error += delegate.name;
+          console.log(error);
+        } else {
+          commands[command] = delegate;
+        }
+      });
+      delegate.listAliases().forEach(function(alias) {
+        if (alias in aliases) {
+          var error = '';
+          error += 'Alias name conflict: [';
+          error += alias;
+          error += '] defined as [';
+          error += commands[aliases[alias]].name;
+          error += '.';
+          error += aliases[alias];
+          error += '] / [';
+          error += delegate.name;
+          error += '.';
+          error += delegate.aliases[alias];
+          error += ']';
+          console.log(error);
+        } else {
+          aliases[alias] = delegate.aliases[alias];
+        }
+      });
+    });
+
+    // for development
+    console.log('Known commands: ' + Object.keys(commands).join(', '));
+    console.log('Known aliases: ' + Object.keys(aliases).join(', '));
+
+    this.init = function(runner) {
+      commandDelegates = commandDelegates.map(function(d) {
+        return d.init(runner);
+      });
+      
+      return this;
+    };
+
+    this.hasCommand = function(keyword) {
+      return keyword in commands;
+    };
+
+    this.hasAlias = function(keyword) {
+      return keyword in aliases && aliases[keyword] in commands;
+    };
+
+    this.run = function(cmd, flags, args) {
+      if (this.hasCommand(cmd)) {
+        return commands[cmd].run(cmd, flags, args);
+      } else if (this.hasAlias(cmd)) {
+        return commands[aliases[cmd]].run(aliases[cmd], flags, args);
+      } else {
+        return 'Command [' + cmd + '] not recognized';
+      }
+    };
+  }
+];
+
+},{}],11:[function(require,module,exports){
+module.exports = require('./commandFactory')
+  .createCommand('echoCommand')
+  .add('echo', function(flags, args) {
+    var command = {};
+    command.command = args[0];
+    command.flags = flags;
+    command.args = args.slice(1);
+
+    return JSON.stringify(command);
+  })
+  .command;
+
+},{"./commandFactory":9}],12:[function(require,module,exports){
+module.exports = require('./commandFactory')
+  .createCommand('helpCommand')
+  .add('help', 'h', function(flags, args) {
     if (args.length === 0) {
       return 'Usage: help <command>';
     }
-    var command = args[0] + ' --help';
+    var command = args[0] + ' --help ' + args.slice(1).join(' ');
     return this.runner.runCommand(command);
-  }.bind(this);
-};
+  })
+  .command;
 
-},{"./commandPrototype":8}],11:[function(require,module,exports){
+},{"./commandFactory":9}],13:[function(require,module,exports){
 angular
   .module('app')
-  .service('commandRunner', require('./commandRunnerService'))
-  .service('helpCommand', require('./helpCommandService'));
+  .service('commandLibrary', require('./commandLibraryService'))
+  .service('echoCommand', require('./echoCommandService'))
+  .service('helpCommand', require('./helpCommandService'))
+  .service('resourceCommand', require('./resourceCommandService'));
 
-},{"./commandRunnerService":9,"./helpCommandService":10}],12:[function(require,module,exports){
+},{"./commandLibraryService":10,"./echoCommandService":11,"./helpCommandService":12,"./resourceCommandService":14}],14:[function(require,module,exports){
+module.exports = require('./commandFactory')
+  .createCommand('resourceCommand')
+  .add('resource', 'r', function(flags, args) {
+    return 'resource command ran';
+  })
+  .command;
+
+},{"./commandFactory":9}],15:[function(require,module,exports){
+angular
+  .module('app')
+  .service('commandRunner', require('./commandRunnerService'));
+
+require('./commands');
+
+},{"./commandRunnerService":8,"./commands":13}],16:[function(require,module,exports){
+Array.prototype.contains = function(elem) {
+  return this.indexOf(elem) !== -1;
+};
+
+// Object.prototype.merge = function(obj) {
+//   if (!obj) return this;
+//   for (var prop in obj) {
+//     if (obj.hasOwnProperty(prop)) {
+//       this[prop] = obj[prop];
+//     }
+//   }
+//   if (arguments.length > 1) {
+//     this.merge.apply(this,[].slice.call(arguments,1));
+//   }
+
+//   return this;
+// };
+
+},{}],17:[function(require,module,exports){
 /*!
  * ionic.bundle.js is a concatenation of:
  * ionic.js, angular.js, angular-animate.js,

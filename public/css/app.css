@@ -10,6 +10,10 @@
 #console {
   height: 400px;
   margin-bottom: 8px; }
+  #console .command {
+    color: #9061C2; }
+  #console .result {
+    color: #FF3D7F; }
 
 .command-line {
   margin-top: 0;

@@ -1,47 +1,9 @@
-module.exports = ['helpCommand', function(helpCommand) {
-  var commandDelegates = [
-    helpCommand.init(this)
-  ];
-
-  this.commands = {};
-  commandDelegates.forEach(function(delegate) {
-    delegate.listCommands().forEach(function(command) {
-      if (command in this.commands) {
-        var error = '';
-        error += 'Command name conflict: ';
-        error += command;
-        error += ' defined in ';
-        error += this.commands[command];
-        error += ' / ';
-        error += delegate;
-        console.log(error);
-      } else {
-        this.commands[command] = delegate;
-      }
-    }.bind(this));
-  }.bind(this));
-
-  this.hasCommand = function(keyword) {
-    return keyword in this.commands;
-  };
-
-  this.aliases = {
-    h: 'help'
-  };
-
-  this.hasAlias = function(keyword) {
-    return keyword in this.aliases && this.aliases[keyword] in this.commands;
-  };
+module.exports = ['commandLibrary', function(commandLibrary) {
+  commandLibrary.init(this);
 
   this.runCommand = function(command) {
     var parsed = this.parseCommand(command);
-    if (this.hasCommand(parsed.command)) {
-      return this.commands[parsed.command].run(parsed.command, parsed.flags, parsed.args);
-    } else if (this.hasAlias(parsed.command)) {
-      return this.commands[this.aliases[parsed.command]].run(this.aliases[parsed.command], parsed.flags, parsed.args);
-    } else {
-      return 'Command not recognized: ' + parsed.command;
-    }
+    return commandLibrary.run(parsed.command, parsed.flags, parsed.args);
   };
 
   this.parseCommand = function(command) {

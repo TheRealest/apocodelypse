@@ -1,5 +1,6 @@
 $console-bg-color: #333;
-$console-text-color: #FF3D7F;
+$console-result-color: #FF3D7F;
+$console-command-color: #9061C2;
 
 %code {
   margin: 20px;
@@ -7,7 +8,7 @@ $console-text-color: #FF3D7F;
   width: 40%;
   font-family: "Lucida Console", Monaco, monospace;
   font-size: 0.8em;
-  color: $console-text-color;
+  color: $console-result-color;
   background: $console-bg-color;
 }
 
@@ -17,11 +18,11 @@ $console-text-color: #FF3D7F;
   margin-bottom: 8px;
 
   .command {
-
+    color: $console-command-color;
   }
 
   .result {
-
+    color: $console-result-color;
   }
 }
 

@@ -15,6 +15,8 @@ var app = angular.module('app', [
     $urlRouterProvider.otherwise('/code');
   });
 
+require('./utils');
+
 require('./controllers');
 require('./directives');
 require('./services');
