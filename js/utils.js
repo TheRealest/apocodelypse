@@ -2,6 +2,12 @@ Array.prototype.contains = function(elem) {
   return this.indexOf(elem) !== -1;
 };
 
+String.prototype.escapeHTML = function() {
+  var elem = document.createElement('div');
+  elem.appendChild(document.createTextNode(this));
+  return elem.innerHTML;
+};
+
 // Object.prototype.merge = function(obj) {
 //   if (!obj) return this;
 //   for (var prop in obj) {

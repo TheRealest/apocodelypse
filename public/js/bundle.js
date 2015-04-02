@@ -22,7 +22,7 @@ require('./controllers');
 require('./directives');
 require('./services');
 
-},{"./controllers":3,"./directives":7,"./services":15,"./utils":16,"ionic-angular":17}],2:[function(require,module,exports){
+},{"./controllers":3,"./directives":7,"./services":16,"./utils":17,"ionic-angular":18}],2:[function(require,module,exports){
 module.exports = function($scope) {
   $scope.method = function() {
     // do stuff
@@ -86,14 +86,10 @@ module.exports = ['commandRunner', function(commandRunner) {
         $scope.commandLine = '';
       };
 
-      $scope.escapeHTML = function(str) {
-        return angular.element('<div>').text(str).html();
-      }
-
       $scope.postCommand = function(command) {
         var line = '';
         line += '<span class="command">&gt; ';
-        line += $scope.escapeHTML(command);
+        line += command;
         line += '</span>';
         line += '<br>';
         consoleElement.append(line);
@@ -102,7 +98,7 @@ module.exports = ['commandRunner', function(commandRunner) {
       $scope.postResult = function(result) {
         var line = '';
         line += '<span class="result">';
-        line += $scope.escapeHTML(result);
+        line += result;
         line += '</span>';
         line += '<br>';
         consoleElement.append(line);
@@ -165,10 +161,37 @@ module.exports = ['commandRunner', function(commandRunner) {
 angular
   .module('app')
   .directive('autoFocus', require('./autoFocusDirective'))
+  .directive('stickyScroll', require('./stickyScrollDirective'))
   .directive('codeWindow', require('./codeWindowDirective'))
   .directive('console', require('./consoleDirective'));
 
-},{"./autoFocusDirective":4,"./codeWindowDirective":5,"./consoleDirective":6}],8:[function(require,module,exports){
+},{"./autoFocusDirective":4,"./codeWindowDirective":5,"./consoleDirective":6,"./stickyScrollDirective":8}],8:[function(require,module,exports){
+module.exports = function() {
+  return {
+    restrict: 'A',
+    link: function postLink(scope, element, attr) {
+      var el = element[0];
+      var sticky = true;
+
+      function isScrolledToBottom() {
+        return el.scrollTop + el.clientHeight >= el.scrollHeight;
+      }
+
+      function scrollHandler() {
+        if (sticky) {
+          el.scrollTop = el.scrollHeight - el.clientHeight;
+        }
+      }
+
+      scope.$watch(scrollHandler);
+      element.bind('scroll', function() {
+        sticky = isScrolledToBottom();
+      });
+    }
+  };
+};
+
+},{}],9:[function(require,module,exports){
 module.exports = ['commandLibrary', function(commandLibrary) {
   commandLibrary.init(this);
 
@@ -208,7 +231,7 @@ module.exports = ['commandLibrary', function(commandLibrary) {
   };
 }];
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = {
   createCommand: function(name) {
     this.command = function() {};
@@ -229,6 +252,29 @@ module.exports = {
       this.command.prototype.aliases[a] = cmd;
     }.bind(this));
 
+    this.last = cmd;
+    return this;
+  },
+
+  getLast: function() {
+    return this.command.prototype.commands[this.last];
+  },
+
+  setLast: function(func) {
+    this.command.prototype.commands[this.last] = func;
+  },
+
+  helpDecorator: function(str, cmd) {
+    return function(flags, args) {
+      if (flags.contains('help')) return str;
+      return cmd(flags,args);
+    };
+  },
+
+  // takes the same arguments as formatOutput
+  help: function(lines, escape) {
+    var str = this.getCommandPrototype().formatOutput(lines,escape);
+    this.setLast(this.helpDecorator(str,this.getLast()));
     return this;
   },
 
@@ -260,12 +306,28 @@ module.exports = {
       },
 
       commands: {},
-      aliases: {}
+      aliases: {},
+
+      // call formatOutput with an array of strings or list
+      // of strings to be combined with HTML line breaks
+      // (<br>) -- if used in the array mode, pass true into
+      // the second argument to escape the lines before
+      // concatenating
+      formatOutput: function(lines, escape) {
+        if (Array.isArray(lines) && escape) {
+          lines = lines.map(function(line) {
+            return line.escapeHTML();
+          });
+        } else if (!Array.isArray(lines)) {
+          lines = [].slice.call(arguments);
+        }
+        return lines.join('<br>');
+      }
     };
   }
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = [
   'echoCommand',
   'helpCommand',
@@ -347,7 +409,7 @@ module.exports = [
   }
 ];
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = require('./commandFactory')
   .createCommand('echoCommand')
   .add('echo', function(flags, args) {
@@ -358,21 +420,28 @@ module.exports = require('./commandFactory')
 
     return JSON.stringify(command);
   })
+  .help(['echo [command]',
+        '---',
+        'Outputs the parsed version of the given command (identifies command, flags, and args).'])
   .command;
 
-},{"./commandFactory":9}],12:[function(require,module,exports){
+},{"./commandFactory":10}],13:[function(require,module,exports){
 module.exports = require('./commandFactory')
   .createCommand('helpCommand')
   .add('help', 'h', function(flags, args) {
     if (args.length === 0) {
-      return 'Usage: help <command>';
+      return this.formatOutput([
+        'help [command]',
+        '---',
+        'Use this command to get information about usage, arguments, and flags for the given command.'
+        ]);
     }
     var command = args[0] + ' --help ' + args.slice(1).join(' ');
     return this.runner.runCommand(command);
   })
   .command;
 
-},{"./commandFactory":9}],13:[function(require,module,exports){
+},{"./commandFactory":10}],14:[function(require,module,exports){
 angular
   .module('app')
   .service('commandLibrary', require('./commandLibraryService'))
@@ -380,7 +449,7 @@ angular
   .service('helpCommand', require('./helpCommandService'))
   .service('resourceCommand', require('./resourceCommandService'));
 
-},{"./commandLibraryService":10,"./echoCommandService":11,"./helpCommandService":12,"./resourceCommandService":14}],14:[function(require,module,exports){
+},{"./commandLibraryService":11,"./echoCommandService":12,"./helpCommandService":13,"./resourceCommandService":15}],15:[function(require,module,exports){
 module.exports = require('./commandFactory')
   .createCommand('resourceCommand')
   .add('resource', 'r', function(flags, args) {
@@ -388,16 +457,22 @@ module.exports = require('./commandFactory')
   })
   .command;
 
-},{"./commandFactory":9}],15:[function(require,module,exports){
+},{"./commandFactory":10}],16:[function(require,module,exports){
 angular
   .module('app')
   .service('commandRunner', require('./commandRunnerService'));
 
 require('./commands');
 
-},{"./commandRunnerService":8,"./commands":13}],16:[function(require,module,exports){
+},{"./commandRunnerService":9,"./commands":14}],17:[function(require,module,exports){
 Array.prototype.contains = function(elem) {
   return this.indexOf(elem) !== -1;
+};
+
+String.prototype.escapeHTML = function() {
+  var elem = document.createElement('div');
+  elem.appendChild(document.createTextNode(this));
+  return elem.innerHTML;
 };
 
 // Object.prototype.merge = function(obj) {
@@ -414,7 +489,7 @@ Array.prototype.contains = function(elem) {
 //   return this;
 // };
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /*!
  * ionic.bundle.js is a concatenation of:
  * ionic.js, angular.js, angular-animate.js,

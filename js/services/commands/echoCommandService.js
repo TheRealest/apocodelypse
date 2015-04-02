@@ -8,4 +8,7 @@ module.exports = require('./commandFactory')
 
     return JSON.stringify(command);
   })
+  .help(['echo [command]',
+        '---',
+        'Outputs the parsed version of the given command (identifies command, flags, and args).'])
   .command;
