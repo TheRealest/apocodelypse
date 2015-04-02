@@ -19,14 +19,10 @@ module.exports = ['commandRunner', function(commandRunner) {
         $scope.commandLine = '';
       };
 
-      $scope.escapeHTML = function(str) {
-        return angular.element('<div>').text(str).html();
-      }
-
       $scope.postCommand = function(command) {
         var line = '';
         line += '<span class="command">&gt; ';
-        line += $scope.escapeHTML(command);
+        line += command;
         line += '</span>';
         line += '<br>';
         consoleElement.append(line);
@@ -35,7 +31,7 @@ module.exports = ['commandRunner', function(commandRunner) {
       $scope.postResult = function(result) {
         var line = '';
         line += '<span class="result">';
-        line += $scope.escapeHTML(result);
+        line += result;
         line += '</span>';
         line += '<br>';
         consoleElement.append(line);

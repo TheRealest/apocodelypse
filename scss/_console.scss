@@ -16,6 +16,7 @@ $console-command-color: #9061C2;
   @extend %code;
   height: 400px;
   margin-bottom: 8px;
+  overflow-y: scroll;
 
   .command {
     color: $console-command-color;
@@ -23,6 +24,20 @@ $console-command-color: #9061C2;
 
   .result {
     color: $console-result-color;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: $console-bg-color;
+    border-style: solid;
+    border-width: 1px;
+    border-color: transparent;
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    border-color: rgba($console-result-color,0.6);
   }
 }
 

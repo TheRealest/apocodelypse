@@ -9,11 +9,22 @@
 
 #console {
   height: 400px;
-  margin-bottom: 8px; }
+  margin-bottom: 8px;
+  overflow-y: scroll; }
   #console .command {
     color: #9061C2; }
   #console .result {
     color: #FF3D7F; }
+  #console::-webkit-scrollbar {
+    width: 8px; }
+  #console::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: #333;
+    border-style: solid;
+    border-width: 1px;
+    border-color: transparent; }
+  #console:hover::-webkit-scrollbar-thumb {
+    border-color: rgba(255, 61, 127, 0.6); }
 
 .command-line {
   margin-top: 0;
