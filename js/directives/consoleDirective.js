@@ -29,12 +29,14 @@ module.exports = ['commandRunner', function(commandRunner) {
       };
 
       $scope.postResult = function(result) {
-        var line = '';
-        line += '<span class="result">';
-        line += result;
-        line += '</span>';
-        line += '<br>';
-        consoleElement.append(line);
+        if (result) {
+          var line = '';
+          line += '<span class="result">';
+          line += result;
+          line += '</span>';
+          line += '<br>';
+          consoleElement.append(line);
+        }
       };
 
       $scope.commandHistory = [];

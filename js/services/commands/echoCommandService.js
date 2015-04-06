@@ -1,6 +1,6 @@
 module.exports = require('./commandFactory')
   .createCommand('echoCommand')
-  .add('echo', function(flags, args) {
+  .add('echo', '=', function(flags, args) {
     var command = {};
     command.command = args[0];
     command.flags = flags;
@@ -8,7 +8,9 @@ module.exports = require('./commandFactory')
 
     return JSON.stringify(command);
   })
-  .help(['echo [command]',
-        '---',
-        'Outputs the parsed version of the given command (identifies command, flags, and args).'])
+  .help([
+    'echo [command]',
+    '---',
+    'Outputs the parsed version of the given command (identifies command, flags, and args).'
+    ])
   .command;

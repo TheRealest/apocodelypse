@@ -1,6 +1,12 @@
 module.exports = {
-  createCommand: function(name) {
-    this.command = function() {};
+  createCommand: function(name, dependencies) {
+    dependencies = dependencies || [];
+    this.command = Function.apply(Function,dependencies.concat(
+      [dependencies.reduce(function(str,s,i) {
+        return str + 'this.'+s+' = arguments['+i+'];';
+      },'')]
+    ));
+    this.command.$inject = dependencies;
     this.command.prototype = this.getCommandPrototype();
     this.command.prototype.name = name;
     return this;
@@ -33,7 +39,7 @@ module.exports = {
   helpDecorator: function(str, cmd) {
     return function(flags, args) {
       if (flags.contains('help')) return str;
-      return cmd(flags,args);
+      return cmd.call(this,flags,args);
     };
   },
 
@@ -78,16 +84,27 @@ module.exports = {
       // of strings to be combined with HTML line breaks
       // (<br>) -- if used in the array mode, pass true into
       // the second argument to escape the lines before
-      // concatenating
+      // concatenating and preserve spaces in output
       formatOutput: function(lines, escape) {
         if (Array.isArray(lines) && escape) {
           lines = lines.map(function(line) {
-            return line.escapeHTML();
+            return line.escapeHTML().spaceHTML();
           });
         } else if (!Array.isArray(lines)) {
           lines = [].slice.call(arguments);
         }
         return lines.join('<br>');
+      },
+
+      // generate a nice looking output table
+      formatData: function(data) {
+
+      },
+
+      // generate a string with n spaces
+      spaces: function(n) {
+        var ss = Array.apply(null,new Array(n));
+        return ss.map(function(){return ' ';}).join('')
       }
     };
   }

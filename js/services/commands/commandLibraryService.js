@@ -1,11 +1,13 @@
 module.exports = [
   'echoCommand',
   'helpCommand',
+  'debugCommand',
   'resourceCommand',
-  function(helpCommand, echoCommand, resourceCommand) {
+  function(echoCommand, helpCommand, debugCommand, resourceCommand) {
     var commandDelegates = [
-      helpCommand,
       echoCommand,
+      helpCommand,
+      debugCommand,
       resourceCommand
     ];
 
@@ -49,7 +51,10 @@ module.exports = [
 
     // for development
     console.log('Known commands: ' + Object.keys(commands).join(', '));
-    console.log('Known aliases: ' + Object.keys(aliases).join(', '));
+    console.log(Object.keys(aliases).reduce(function(str,a,i) {
+      str += a + ' (' + aliases[a] + ')';
+      return i + 1 !== Object.keys(aliases).length ? str + ', ' : str;
+    },'Known aliases: '));
 
     this.init = function(runner) {
       commandDelegates = commandDelegates.map(function(d) {

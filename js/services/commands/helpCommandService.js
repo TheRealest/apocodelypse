@@ -1,6 +1,6 @@
 module.exports = require('./commandFactory')
   .createCommand('helpCommand')
-  .add('help', 'h', function(flags, args) {
+  .add('help', ['h','?'], function(flags, args) {
     if (args.length === 0) {
       return this.formatOutput([
         'help [command]',

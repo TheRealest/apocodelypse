@@ -3,6 +3,7 @@ module.exports = ['commandLibrary', function(commandLibrary) {
 
   this.runCommand = function(command) {
     var parsed = this.parseCommand(command);
+    if (parsed.command === '') return false;
     return commandLibrary.run(parsed.command, parsed.flags, parsed.args);
   };
 
