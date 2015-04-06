@@ -1,3 +1,6 @@
+angular.module('app')
+  .value('LINE_WIDTH', 73);
+
 Array.prototype.contains = function(elem) {
   return this.indexOf(elem) !== -1;
 };
