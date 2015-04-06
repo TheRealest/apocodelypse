@@ -22,7 +22,7 @@ require('./controllers');
 require('./directives');
 require('./services');
 
-},{"./controllers":3,"./directives":7,"./services":16,"./utils":17,"ionic-angular":18}],2:[function(require,module,exports){
+},{"./controllers":3,"./directives":7,"./services":17,"./utils":19,"ionic-angular":20}],2:[function(require,module,exports){
 module.exports = function($scope) {
   $scope.method = function() {
     // do stuff
@@ -96,12 +96,14 @@ module.exports = ['commandRunner', function(commandRunner) {
       };
 
       $scope.postResult = function(result) {
-        var line = '';
-        line += '<span class="result">';
-        line += result;
-        line += '</span>';
-        line += '<br>';
-        consoleElement.append(line);
+        if (result) {
+          var line = '';
+          line += '<span class="result">';
+          line += result;
+          line += '</span>';
+          line += '<br>';
+          consoleElement.append(line);
+        }
       };
 
       $scope.commandHistory = [];
@@ -197,6 +199,7 @@ module.exports = ['commandLibrary', function(commandLibrary) {
 
   this.runCommand = function(command) {
     var parsed = this.parseCommand(command);
+    if (parsed.command === '') return false;
     return commandLibrary.run(parsed.command, parsed.flags, parsed.args);
   };
 
@@ -233,8 +236,14 @@ module.exports = ['commandLibrary', function(commandLibrary) {
 
 },{}],10:[function(require,module,exports){
 module.exports = {
-  createCommand: function(name) {
-    this.command = function() {};
+  createCommand: function(name, dependencies) {
+    dependencies = dependencies || [];
+    this.command = Function.apply(Function,dependencies.concat(
+      [dependencies.reduce(function(str,s,i) {
+        return str + 'this.'+s+' = arguments['+i+'];';
+      },'')]
+    ));
+    this.command.$inject = dependencies;
     this.command.prototype = this.getCommandPrototype();
     this.command.prototype.name = name;
     return this;
@@ -267,7 +276,7 @@ module.exports = {
   helpDecorator: function(str, cmd) {
     return function(flags, args) {
       if (flags.contains('help')) return str;
-      return cmd(flags,args);
+      return cmd.call(this,flags,args);
     };
   },
 
@@ -312,16 +321,27 @@ module.exports = {
       // of strings to be combined with HTML line breaks
       // (<br>) -- if used in the array mode, pass true into
       // the second argument to escape the lines before
-      // concatenating
+      // concatenating and preserve spaces in output
       formatOutput: function(lines, escape) {
         if (Array.isArray(lines) && escape) {
           lines = lines.map(function(line) {
-            return line.escapeHTML();
+            return line.escapeHTML().spaceHTML();
           });
         } else if (!Array.isArray(lines)) {
           lines = [].slice.call(arguments);
         }
         return lines.join('<br>');
+      },
+
+      // generate a nice looking output table
+      formatData: function(data) {
+
+      },
+
+      // generate a string with n spaces
+      spaces: function(n) {
+        var ss = Array.apply(null,new Array(n));
+        return ss.map(function(){return ' ';}).join('')
       }
     };
   }
@@ -331,11 +351,13 @@ module.exports = {
 module.exports = [
   'echoCommand',
   'helpCommand',
+  'debugCommand',
   'resourceCommand',
-  function(helpCommand, echoCommand, resourceCommand) {
+  function(echoCommand, helpCommand, debugCommand, resourceCommand) {
     var commandDelegates = [
-      helpCommand,
       echoCommand,
+      helpCommand,
+      debugCommand,
       resourceCommand
     ];
 
@@ -379,7 +401,10 @@ module.exports = [
 
     // for development
     console.log('Known commands: ' + Object.keys(commands).join(', '));
-    console.log('Known aliases: ' + Object.keys(aliases).join(', '));
+    console.log(Object.keys(aliases).reduce(function(str,a,i) {
+      str += a + ' (' + aliases[a] + ')';
+      return i + 1 !== Object.keys(aliases).length ? str + ', ' : str;
+    },'Known aliases: '));
 
     this.init = function(runner) {
       commandDelegates = commandDelegates.map(function(d) {
@@ -411,8 +436,40 @@ module.exports = [
 
 },{}],12:[function(require,module,exports){
 module.exports = require('./commandFactory')
+  .createCommand('debugCommand',['resources'])
+  .add('debug', '`', function(flags, args) {
+    if (args[0] === 'res') {
+      var res = args[1], num = parseInt(args[2],0);
+      if (num >= 0) {
+        this.resources.add(res,num);
+        return 'Added (' + num + ') to resource (' + res + ')';
+      } else {
+        this.resources.remove(res,-num);
+        return 'Removed (' + -num + ') from resource (' + res + ')';
+      }
+    } else {
+      return false;
+    }
+  })
+  .help([
+    'debug (alias: !) - manipulate',
+    '---',
+    'USAGE:',
+    '  debug',
+    '        res <resource> <amount>',
+    '---',
+    'MODES:',
+    '  bare',
+    '    Displays debug info.',
+    '  res <resource> <amount>',
+    '    Increments player resource quantity by amount given. Use a negative number to decrement the resource instead (won\'t reduce it below 0).'
+    ],true)
+  .command;
+
+},{"./commandFactory":10}],13:[function(require,module,exports){
+module.exports = require('./commandFactory')
   .createCommand('echoCommand')
-  .add('echo', function(flags, args) {
+  .add('echo', '=', function(flags, args) {
     var command = {};
     command.command = args[0];
     command.flags = flags;
@@ -420,15 +477,17 @@ module.exports = require('./commandFactory')
 
     return JSON.stringify(command);
   })
-  .help(['echo [command]',
-        '---',
-        'Outputs the parsed version of the given command (identifies command, flags, and args).'])
+  .help([
+    'echo [command]',
+    '---',
+    'Outputs the parsed version of the given command (identifies command, flags, and args).'
+    ])
   .command;
 
-},{"./commandFactory":10}],13:[function(require,module,exports){
+},{"./commandFactory":10}],14:[function(require,module,exports){
 module.exports = require('./commandFactory')
   .createCommand('helpCommand')
-  .add('help', 'h', function(flags, args) {
+  .add('help', ['h','?'], function(flags, args) {
     if (args.length === 0) {
       return this.formatOutput([
         'help [command]',
@@ -441,30 +500,125 @@ module.exports = require('./commandFactory')
   })
   .command;
 
-},{"./commandFactory":10}],14:[function(require,module,exports){
+},{"./commandFactory":10}],15:[function(require,module,exports){
 angular
   .module('app')
   .service('commandLibrary', require('./commandLibraryService'))
   .service('echoCommand', require('./echoCommandService'))
   .service('helpCommand', require('./helpCommandService'))
+  .service('debugCommand', require('./debugCommandService'))
   .service('resourceCommand', require('./resourceCommandService'));
 
-},{"./commandLibraryService":11,"./echoCommandService":12,"./helpCommandService":13,"./resourceCommandService":15}],15:[function(require,module,exports){
+},{"./commandLibraryService":11,"./debugCommandService":12,"./echoCommandService":13,"./helpCommandService":14,"./resourceCommandService":16}],16:[function(require,module,exports){
 module.exports = require('./commandFactory')
-  .createCommand('resourceCommand')
+  .createCommand('resourceCommand',['resources','LINE_WIDTH'])
   .add('resource', 'r', function(flags, args) {
-    return 'resource command ran';
+    if (flags.length === 0 && args.length === 0) {
+      var str = [
+        'RESOURCES',
+        '---------'
+      ];
+      var rs = this.resources.all();
+      for (var r in rs) {
+        var longName = this.resources.library[r].longName;
+        var amount = rs[r] + ' ' + this.resources.library[r].unit;
+        var spacesLength = this.LINE_WIDTH-longName.length-amount.length;
+        var spaces = Array.apply(null,new Array(spacesLength)).map(function(){return ' ';}).join('');
+        str.push(longName+spaces+amount);
+      }
+      return this.formatOutput(str,true);
+    } else {
+      return this.runner.runCommand('resource --help');
+    }
   })
+  .help([
+    'resource (alias: r) - display resource information',
+    '---',
+    'USAGE:',
+    '  resource',
+    '           -g',
+    '           -f <family>',
+    '           -a [-g] [-f <family>]',
+    '           -d <resource>',
+    '---',
+    'MODES:',
+    '  bare',
+    '    Displays all resources with quantities in alphabetical order.',
+    '  -g',
+    '    Groups output by resource group (i.e. plant extract, medicine, alloy, etc).'
+    ],true)
   .command;
 
-},{"./commandFactory":10}],16:[function(require,module,exports){
+},{"./commandFactory":10}],17:[function(require,module,exports){
 angular
   .module('app')
-  .service('commandRunner', require('./commandRunnerService'));
+  .service('commandRunner', require('./commandRunnerService'))
+  .service('resources', require('./resourcesService'));
 
 require('./commands');
 
-},{"./commandRunnerService":9,"./commands":14}],17:[function(require,module,exports){
+},{"./commandRunnerService":9,"./commands":15,"./resourcesService":18}],18:[function(require,module,exports){
+module.exports = function() {
+  // holds current inventory as shortName: quantity
+  var current = {};
+
+  // resource classification system
+  this.C = {
+    group: {
+      // horizontal category, similar in processing
+      organic: 'Organic',
+      inorganic: 'Inorganic'
+    },
+    // vertical category, originating from same base
+    family: {
+      salt: 'Salt'
+    }
+  };
+
+  // resource information
+  this.library = {
+    salt: {
+      longName: 'Salt',
+      group: this.C.group.inorganic,
+      family: this.C.family.salt,
+      unit: 'kg'
+    }
+  };
+
+  this.add = function(res, num) {
+    if (num < 0) return false;
+    current[res] = current[res] || 0;
+    current[res] += num;
+    return current[res];
+  };
+
+  this.remove = function(res, num) {
+    if (!(res in current) || num < 0 || current[res] < num) {
+      return false;
+    } else {
+      current[res] -= num;
+      return current[res];
+    }
+  };
+
+  this.current = function(res) {
+    if (res in current) {
+      return current[res];
+    } else {
+      return 0;
+    }
+  };
+
+  // provides read-only resource list
+  this.all = function() {
+    return {}.merge(current);
+  };
+};
+
+},{}],19:[function(require,module,exports){
+angular.module('app')
+  .value('LINE_WIDTH', 73);
+
 Array.prototype.contains = function(elem) {
   return this.indexOf(elem) !== -1;
 };
@@ -475,21 +629,32 @@ String.prototype.escapeHTML = function() {
   return elem.innerHTML;
 };
 
-// Object.prototype.merge = function(obj) {
-//   if (!obj) return this;
-//   for (var prop in obj) {
-//     if (obj.hasOwnProperty(prop)) {
-//       this[prop] = obj[prop];
-//     }
-//   }
-//   if (arguments.length > 1) {
-//     this.merge.apply(this,[].slice.call(arguments,1));
-//   }
+String.prototype.spaceHTML = function() {
+  return this.replace(/\s/g,'&nbsp;');
+};
 
-//   return this;
-// };
+if (!Object.merge) {
+  Object.defineProperty(Object.prototype, 'merge', {
+    enumerable: false,
+    configurable: true,
+    writable: true,
+    value: function(obj) {
+      if (!obj) return this;
+      for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+          this[prop] = obj[prop];
+        }
+      }
+      if (arguments.length > 1) {
+        this.merge.apply(this,[].slice.call(arguments,1));
+      }
 
-},{}],18:[function(require,module,exports){
+      return this;
+    }
+  });
+}
+
+},{}],20:[function(require,module,exports){
 /*!
  * ionic.bundle.js is a concatenation of:
  * ionic.js, angular.js, angular-animate.js,
