@@ -4,4 +4,5 @@ angular
   .service('echoCommand', require('./echoCommandService'))
   .service('helpCommand', require('./helpCommandService'))
   .service('debugCommand', require('./debugCommandService'))
-  .service('resourceCommand', require('./resourceCommandService'));
+  .service('resourceCommand', require('./resourceCommandService'))
+  .service('producerCommand', require('./producerCommandService'));

@@ -3,12 +3,14 @@ module.exports = [
   'helpCommand',
   'debugCommand',
   'resourceCommand',
-  function(echoCommand, helpCommand, debugCommand, resourceCommand) {
+  'producerCommand',
+  function(echoCommand, helpCommand, debugCommand, resourceCommand, producerCommand) {
     var commandDelegates = [
       echoCommand,
       helpCommand,
       debugCommand,
-      resourceCommand
+      resourceCommand,
+      producerCommand
     ];
 
     var commands = {},
