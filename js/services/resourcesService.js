@@ -26,14 +26,14 @@ module.exports = function() {
   };
 
   this.add = function(res, num) {
-    if (num < 0) return false;
+    if (num < 0 || !(res in this.library)) return false;
     current[res] = current[res] || 0;
     current[res] += num;
     return current[res];
   };
 
   this.remove = function(res, num) {
-    if (!(res in current) || num < 0 || current[res] < num) {
+    if (!(res in current) || !(res in this.library) || num < 0 || current[res] < num) {
       return false;
     } else {
       current[res] -= num;
