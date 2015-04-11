@@ -61,5 +61,10 @@ $console-command-color: #9061C2;
     width: 95%;
     top: -2em;
     left: -0.5em;
+
+    &::selection {
+      color: $console-bg-color;
+      background: $console-result-color;
+    }
   }
 }
