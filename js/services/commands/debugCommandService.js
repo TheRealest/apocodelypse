@@ -32,6 +32,9 @@ module.exports = require('./commandFactory')
         this.producers.downgrade(up);
         return 'Removed upgrade (' + up + ')';
       }
+    } else if (args[0] === 'test') {
+      // run a test defined below
+      return tests[args[1]] ? tests[args[1]].call(this.runner.runCommand,flags,args.slice(2)) : 'Test not found';
     } else {
       return this.runner.runCommand('debug --help');
     }
@@ -56,3 +59,19 @@ module.exports = require('./commandFactory')
     '    Adds or removes a producer upgrade. Default adds upgrade if second argument is omitted.'
     ],true)
   .command;
+
+var tests = {
+  log: function() {
+    return [
+      { content: ['left','right'], transforms: 'justify' },
+      { content: 'header', transforms: 'header' },
+      { content: 'indent-1', transforms: 'indent 1' }
+    ];
+  },
+  r: function() {
+    return [
+      this('` r salt 5'),
+      this('r')
+    ];
+  }
+};
