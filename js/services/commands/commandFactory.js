@@ -22,7 +22,7 @@ module.exports = {
     this.command.prototype.commands[cmd] = processor;
     aliases.forEach(function(a) {
       this.command.prototype.aliases[a] = cmd;
-    }.bind(this));
+    },this);
 
     this.last = cmd;
     return this;
@@ -90,7 +90,7 @@ module.exports = {
       // generate a string with n spaces
       spaces: function(n) {
         var ss = Array.apply(null,new Array(n));
-        return ss.map(function(){return ' ';}).join('')
+        return ss.map(function(){return ' ';}).join('');
       }
     };
   }
