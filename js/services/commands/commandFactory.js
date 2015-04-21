@@ -43,10 +43,9 @@ module.exports = {
     };
   },
 
-  // takes the same arguments as formatOutput
-  help: function(lines, escape) {
-    var str = this.getCommandPrototype().formatOutput(lines,escape);
-    this.setLast(this.helpDecorator(str,this.getLast()));
+  // takes the same arguments as log.process
+  help: function(lines) {
+    this.setLast(this.helpDecorator(lines,this.getLast()));
     return this;
   },
 
@@ -80,25 +79,12 @@ module.exports = {
       commands: {},
       aliases: {},
 
-      // call formatOutput with an array of strings or list
-      // of strings to be combined with HTML line breaks
-      // (<br>) -- if used in the array mode, pass true into
-      // the second argument to escape the lines before
-      // concatenating and preserve spaces in output
-      formatOutput: function(lines, escape) {
-        if (Array.isArray(lines) && escape) {
-          lines = lines.map(function(line) {
-            return line.escapeHTML().spaceHTML();
-          });
-        } else if (!Array.isArray(lines)) {
-          lines = [].slice.call(arguments);
-        }
-        return lines.join('<br>');
-      },
-
-      // generate a nice looking output table
-      formatData: function(data) {
-
+      line: function(content,transforms) {
+        transforms = Array.isArray(transforms) ? transforms : [transforms];
+        return {
+          content: content,
+          transforms: transforms
+        };
       },
 
       // generate a string with n spaces

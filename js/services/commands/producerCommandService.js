@@ -2,34 +2,28 @@ module.exports = require('./commandFactory')
   .createCommand('producerCommand',['producers','LINE_WIDTH'])
   .add('producer', 'p', function(flags, args) {
     if (flags.length === 0 && args.length === 0) {
-      var str = [
-        'PRODUCERS',
-        '---------'
-      ];
+      var lines = [this.line('producers','header')];
       var ps = this.producers.all.producers();
+      if (Object.keys(ps).length === 0) return 'No producers yet!';
+
       for (var p in ps) {
         var longName = this.producers.library.producer[p].longName;
         var amount = ps[p] + ' (' + this.producers.library.producer[p].rate + '/tick)';
-        var spacesLength = this.LINE_WIDTH-longName.length-amount.length;
-        var spaces = Array.apply(null,new Array(spacesLength)).map(function(){return ' ';}).join('');
-        str.push(longName+spaces+amount);
+        lines.push(this.line([longName,amount],'justify'));
       }
-      return this.formatOutput(str,true);
+      return lines;
     } else if (flags.contains('u')) {
-      var str = [
-        'UPGRADES',
-        '--------'
-      ];
-      var us = this.producers.all.producers();
+      var lines = [this.line('upgrades','header')];
+      var us = this.producers.all.upgrades();
+      if (Object.keys(us).length === 0) return 'No upgrades yet!';
+
       for (var u in us) {
-        var lib = this.producers.library.upgrade[u];
-        var longName = lib.longName;
-        var amount = lib.type + ' (x' + lib.rate + ')';
-        var spacesLength = this.LINE_WIDTH-longName.length-amount.length;
-        var spaces = Array.apply(null,new Array(spacesLength)).map(function(){return ' ';}).join('');
-        str.push(longName+spaces+amount);
+        var up = this.producers.library.upgrade[u];
+        var longName = up.longName;
+        var amount = up.type + ' (x' + up.rate + ')';
+        lines.push([longName,amount],'justify');
       }
-      return this.formatOutput(str,true);
+      return lines;
     } else {
       return this.runner.runCommand('producer --help');
     }

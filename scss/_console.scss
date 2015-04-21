@@ -17,6 +17,7 @@ $console-command-color: #9061C2;
   height: 400px;
   margin-bottom: 8px;
   overflow-y: scroll;
+  white-space: pre-wrap;
 
   .command {
     color: $console-command-color;

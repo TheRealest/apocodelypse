@@ -1,10 +1,11 @@
-module.exports = ['commandLibrary', function(commandLibrary) {
+module.exports = ['commandLibrary', 'log', function(commandLibrary,log) {
   commandLibrary.init(this);
 
   this.runCommand = function(command) {
     var parsed = this.parseCommand(command);
     if (parsed.command === '') return false;
-    return commandLibrary.run(parsed.command, parsed.flags, parsed.args);
+    var result = commandLibrary.run(parsed.command, parsed.flags, parsed.args);
+    return log.process(result);
   };
 
   this.parseCommand = function(command) {
